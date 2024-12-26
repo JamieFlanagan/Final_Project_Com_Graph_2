@@ -887,7 +887,7 @@ int main(void)
 	particles.initialize(3000, rows, cols, spacing);
 
 
-	glm::vec3 lightPos = cityCenterSky + glm::vec3(200.0f, 400.0f, 200.0f);
+	glm::vec3 lightPos = cityCenterSky + glm::vec3(200.0f, 800.0f, 200.0f);
 	glm::vec3 lightColor(1.0f, 1.0f, 1.0f);     // Green light
 	glm::vec3 viewPos = eye_center;              // Camera position
 

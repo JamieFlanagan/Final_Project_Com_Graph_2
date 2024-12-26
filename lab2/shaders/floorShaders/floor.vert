@@ -18,13 +18,8 @@ uniform vec3 cameraPosition;
 
 void main() {
     gl_Position = MVP * vec4(vertexPosition, 1.0);
-
     vec3 worldPos = vec3(model * vec4(vertexPosition, 1.0));
-
-    // Adjust UV coordinates for infinite tiling
     UV = worldPos.xz * tileScale;
-
-    // Pass data to the fragment shader
     FragPos = vec3(model * vec4(vertexPosition, 1.0));
     Normal = mat3(transpose(inverse(model))) * vertexNormal;
     FragPosLightSpace = lightSpaceMatrix * vec4(FragPos, 1.0);
