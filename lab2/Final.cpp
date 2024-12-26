@@ -792,8 +792,19 @@ int main(void)
 	int rows =7;
 	int cols = 7;
 	float spacing = 65;
-	//GLuint buildingTexture = LoadTextureTileBox("../lab2/nightCity.jpg");
-	GLuint buildText = LoadTextureTileBox("../lab2/cityGround.jpg");
+
+
+	std::vector<GLuint> textures;
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	//GLuint buildText = LoadTextureTileBox("../lab2/futureBuildings.jpg");
+
+	//textures.push_back(buildText);
+	textures.push_back(LoadTextureTileBox("../lab2/nightCity.jpg"));
+	textures.push_back(LoadTextureTileBox("../lab2/nightCity2.jpg"));
+	textures.push_back(LoadTextureTileBox("../lab2/nightCity3.jpg"));
+	std::uniform_int_distribution<> texture_dist(0, textures.size() - 1);
 	float x=0;
 	float z=0;
 	std::vector<Building> buildings;
@@ -815,15 +826,11 @@ int main(void)
 			// Adjust position.y to account for the height
 			position.y = height;
 			position.y = height;
-
-			b.initialize(position, scale, buildText);
+			std::cout << "Textures size: " << textures.size() << std::endl;
+			std::cout << "Random index: " << texture_dist(gen) << std::endl;
+			GLuint random_texture = textures[texture_dist(gen)];
+			b.initialize(position, scale, random_texture);
 			buildings.push_back(b);
-
-			// Debugging: Print building positions
-			std::cout << "Building created at position: ("
-					  << position.x << ", "
-					  << position.y << ", "
-					  << position.z << ")" << std::endl;
 		}
 	}
 

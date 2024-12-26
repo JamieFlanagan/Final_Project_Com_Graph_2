@@ -33,17 +33,6 @@ public:
     void render(glm::mat4 cameraMatrix, glm::vec3 lightPos, glm::vec3 lightColor, glm::vec3 viewPos, glm::mat4 lightSpaceMatrix, GLuint depthMap);
     void renderDepth(GLuint shaderProgramID, glm::mat4 lightSpaceMatrix);
     void cleanup();
-    bool checkCollision(const glm::vec3& position) const {
-        // Calculate building bounds
-        float halfWidth = scale.x;
-        float halfDepth = scale.z;
-
-        // Check if position is within building bounds
-        return (position.x >= position.x - halfWidth &&
-                position.x <= position.x + halfWidth &&
-                position.z >= position.z - halfDepth &&
-                position.z <= position.z + halfDepth);
-    }
 
 };
 

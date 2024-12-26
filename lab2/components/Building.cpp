@@ -233,6 +233,7 @@ void Building::initialize(glm::vec3 position, glm::vec3 scale, GLuint TextureID)
 		glBindBuffer(GL_ARRAY_BUFFER, colorBufferID);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(building_color_buffer_data), building_color_buffer_data, GL_STATIC_DRAW);
 
+	//So the uv stretching is not carried over into every building
 		GLfloat local_uv_buffer_data[48];
 		std::copy(std::begin(building_uv_buffer_data), std::end(building_uv_buffer_data), std::begin(local_uv_buffer_data));
 		for (int i = 0; i < 24; ++i) local_uv_buffer_data[2 * i + 1] *= 5;
@@ -260,7 +261,8 @@ GL_STATIC_DRAW);
 		}
 
 		useTextureID = glGetUniformLocation(programID, "useTexture");
-		textureID = LoadTextureTileBox(("../lab2/futureBuildings.jpg"));
+		//textureID = LoadTextureTileBox(("../lab2/futureBuildings.jpg"));
+		textureID = TextureID;
 		mvpMatrixID = glGetUniformLocation(programID, "MVP");
         textureSamplerID = glGetUniformLocation(programID,"textureSampler");
 		lightSpaceMatrixID = glGetUniformLocation(programID, "lightSpaceMatrix");
