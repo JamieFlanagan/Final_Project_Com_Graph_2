@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/JAMIE/Documents/4thYear/ComputerGraphics/ForChecking/lab2_backup/external/glfw-3.1.2/src
+# Install script for directory: C:/Users/JAMIE/Documents/4thYear/Com_Graph_Final/Final_Project_Com_Graph_2/external/glfw-3.1.2/src
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

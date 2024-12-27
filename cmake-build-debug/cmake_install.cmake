@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/JAMIE/Documents/4thYear/ComputerGraphics/ForChecking/lab2_backup
+# Install script for directory: C:/Users/JAMIE/Documents/4thYear/Com_Graph_Final/Final_Project_Com_Graph_2
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -39,7 +39,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("C:/Users/JAMIE/Documents/4thYear/ComputerGraphics/ForChecking/lab2_backup/cmake-build-debug/external/cmake_install.cmake")
+  include("C:/Users/JAMIE/Documents/4thYear/Com_Graph_Final/Final_Project_Com_Graph_2/cmake-build-debug/external/cmake_install.cmake")
 
 endif()
 
@@ -51,5 +51,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "C:/Users/JAMIE/Documents/4thYear/ComputerGraphics/ForChecking/lab2_backup/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "C:/Users/JAMIE/Documents/4thYear/Com_Graph_Final/Final_Project_Com_Graph_2/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
