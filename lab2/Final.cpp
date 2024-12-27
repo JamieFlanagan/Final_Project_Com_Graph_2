@@ -9,6 +9,7 @@
 
 #define _USE_MATH_DEFINES
 #include <algorithm>
+#include <iomanip>
 #include <math.h>
 #include <bits/random.h>
 #include <random>
@@ -691,6 +692,9 @@ int main(void)
 	projectionMatrix = glm::perspective(glm::radians(FoV), 4.0f / 3.0f, zNear, zFar);
 
 	float time = 0.0f;
+	// Time and frame rate tracking
+	float fTime = 0.0f;			// Time for measuring fps
+	unsigned long frames = 0;
 	do
 	{
 		float animationTime = 0.0f;
@@ -779,6 +783,18 @@ int main(void)
 		particles.render(vp);
 		glEnable(GL_CULL_FACE);
 		//particleSystem.render(vp);
+
+		frames++;
+		fTime += deltaTime;
+		if (fTime > 2.0f) {
+			float fps = frames / fTime;
+			frames = 0;
+			fTime = 0;
+
+			std::stringstream stream;
+			stream << std::fixed << std::setprecision(2) << "Future EmeraldIsle | Frames per second (FPS): " << fps;
+			glfwSetWindowTitle(window, stream.str().c_str());
+		}
 
 		//Debug the camera posititon so I can exactly choose where I want certain elements
 
