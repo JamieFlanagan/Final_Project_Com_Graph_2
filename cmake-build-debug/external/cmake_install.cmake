@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/JAMIE/Documents/4thYear/ComputerGraphics/ForChecking/lab2_backup/external
+# Install script for directory: C:/Users/JAMIE/Documents/4thYear/ComputerGraphics/ProjectWithUFO/Final_Project_Com_Graph_2/external
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -39,8 +39,8 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("C:/Users/JAMIE/Documents/4thYear/ComputerGraphics/ForChecking/lab2_backup/cmake-build-debug/external/glad-3.3/cmake_install.cmake")
-  include("C:/Users/JAMIE/Documents/4thYear/ComputerGraphics/ForChecking/lab2_backup/cmake-build-debug/external/glfw-3.1.2/cmake_install.cmake")
+  include("C:/Users/JAMIE/Documents/4thYear/ComputerGraphics/ProjectWithUFO/Final_Project_Com_Graph_2/cmake-build-debug/external/glad-3.3/cmake_install.cmake")
+  include("C:/Users/JAMIE/Documents/4thYear/ComputerGraphics/ProjectWithUFO/Final_Project_Com_Graph_2/cmake-build-debug/external/glfw-3.1.2/cmake_install.cmake")
 
 endif()
 
