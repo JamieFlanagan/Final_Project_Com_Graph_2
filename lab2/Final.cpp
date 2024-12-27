@@ -131,6 +131,11 @@ struct ObjModel {
     glm::vec3 position; // Model position
     glm::vec3 scale;    // Model scale
 
+	//Hover variables
+	float hoverTime = 0.0f;
+	float hoverAmplitude = 0.5f;
+	float hoverFrequency = 2.0f;
+
     struct Mesh {
         GLuint vao, vbo, ebo; // OpenGL buffers for each mesh
         unsigned int indexCount; // Number of indices
@@ -233,10 +238,16 @@ struct ObjModel {
         }
     }
 
-    void render(glm::mat4 vpMatrix) {
+    void render(glm::mat4 vpMatrix, float deltaTime) {
         glUseProgram(programID);
 
-        glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), position);
+    	//Add slight hover to the UFO
+    	hoverTime+=deltaTime;
+    	float hoverOffSet = hoverAmplitude*std::sin(hoverFrequency*hoverTime);
+		glm::vec3 hoverPostition = position;
+    	hoverPostition.y+=hoverOffSet;
+
+        glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), hoverPostition);
         modelMatrix = glm::scale(modelMatrix, scale);
         glm::mat4 mvp = vpMatrix * modelMatrix;
 
@@ -764,7 +775,7 @@ int main(void)
 		bot2.render(vp);
 		glm::vec3 modelColor = glm::vec3(0.8f, 0.1f, 0.3f);
 		glDisable(GL_CULL_FACE);
-		myModel.render(vp);
+		myModel.render(vp, deltaTime);
 		glEnable(GL_CULL_FACE);
 
 		//Have this in to debug the cylinder drone but it doesnt work
