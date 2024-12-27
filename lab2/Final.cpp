@@ -584,7 +584,7 @@ int main(void)
 
 	//The ground
 	Floor floor;
-	GLuint floorTexture = LoadTextureTileBox("../lab2/cityGround.jpg");
+	GLuint floorTexture = LoadTextureTileBox("../lab2/ground.jpg");
 	floor.initialize(floorTexture);
 	float floorSize = 800.0f;
 
@@ -592,7 +592,6 @@ int main(void)
 	int rows =7;
 	int cols = 7;
 	float spacing = 65;
-
 
 	std::vector<GLuint> textures;
 
