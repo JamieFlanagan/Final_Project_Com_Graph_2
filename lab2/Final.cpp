@@ -6,6 +6,7 @@
 #include <stb/stb_image.h>
 #include <vector>
 #include <iostream>
+
 #define _USE_MATH_DEFINES
 #include <algorithm>
 #include <math.h>
@@ -22,10 +23,17 @@
 #include "components/animation_model.h"
 #include "components/WelcomeSign/WelcomeSign.h"
 
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 #include <tiny_gltf.h>
+
 
 #include "components/CoolerParticles/movingParticles.h"
 #include "components/ParticleSystem/ParticleSystem.h"
+
+
 
 static GLFWwindow *window;
 static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
@@ -118,364 +126,143 @@ static void saveDepthTexture(GLuint fbo, std::string filename) {
 	stbi_write_png(filename.c_str(), width, height, channels, img.data(), width * channels);
 }
 
-/*
-struct Building {
-	glm::vec3 position;		// Position of the box
-	glm::vec3 scale;		// Size of the box in each axis
-
-	GLfloat vertex_buffer_data[72] = {	// Vertex definition for a canonical box
-		// Front face
-		-1.0f, -1.0f, 1.0f,
-		1.0f, -1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-		-1.0f, 1.0f, 1.0f,
-
-		// Back face
-		1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, 1.0f, -1.0f,
-		1.0f, 1.0f, -1.0f,
-
-		// Left face
-		-1.0f, -1.0f, -1.0f,
-		-1.0f, -1.0f, 1.0f,
-		-1.0f, 1.0f, 1.0f,
-		-1.0f, 1.0f, -1.0f,
-
-		// Right face
-		1.0f, -1.0f, 1.0f,
-		1.0f, -1.0f, -1.0f,
-		1.0f, 1.0f, -1.0f,
-		1.0f, 1.0f, 1.0f,
-
-		// Top face
-		-1.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, 1.0f,
-		1.0f, 1.0f, -1.0f,
-		-1.0f, 1.0f, -1.0f,
-
-		// Bottom face
-		-1.0f, -1.0f, -1.0f,
-		1.0f, -1.0f, -1.0f,
-		1.0f, -1.0f, 1.0f,
-		-1.0f, -1.0f, 1.0f,
-	};
-
-
-
-	GLfloat color_buffer_data[72] = {
-		// Front, red
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-
-		// Back, yellow
-		1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-		1.0f, 1.0f, 0.0f,
-
-		// Left, green
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-
-		// Right, cyan
-		0.0f, 1.0f, 1.0f,
-		0.0f, 1.0f, 1.0f,
-		0.0f, 1.0f, 1.0f,
-		0.0f, 1.0f, 1.0f,
-
-		// Top, blue
-		0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-
-		// Bottom, magenta
-		1.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 1.0f,
-		1.0f, 0.0f, 1.0f,
-	};
-
-	GLuint index_buffer_data[36] = {		// 12 triangle faces of a box
-		0, 1, 2,
-		0, 2, 3,
-
-		4, 5, 6,
-		4, 6, 7,
-
-		8, 9, 10,
-		8, 10, 11,
-
-		12, 13, 14,
-		12, 14, 15,
-
-		16, 17, 18,
-		16, 18, 19,
-
-		20, 21, 22,
-		20, 22, 23,
-	};
-
-	GLfloat uv_buffer_data[48]={
-		//Front
-		0.0f, 1.0f,
-		1.0f, 1.0f,
-		1.0f, 0.0f,
-		0.0f, 0.0f,
-
-		// Back
-		0.0f, 1.0f,
-		1.0f, 1.0f,
-		1.0f, 0.0f,
-		0.0f, 0.0f,
-
-		//Left
-		0.0f, 1.0f,
-		1.0f, 1.0f,
-		1.0f, 0.0f,
-		0.0f, 0.0f,
-
-		//Right
-		0.0f, 1.0f,
-		1.0f, 1.0f,
-		1.0f, 0.0f,
-		0.0f, 0.0f,
-
-		// Top - we do not want texture the top
-		0.0f, 0.0f,
-		0.0f, 0.0f,
-		0.0f, 0.0f,
-		0.0f, 0.0f,
- // Bottom - we do not want texture the bottom
-		0.0f, 0.0f,
-		0.0f, 0.0f,
-		0.0f, 0.0f,
-		0.0f, 0.0f,
-
-	};
-
-	//Normals
-	GLfloat building_normal_buffer_data[72] = {
-		// Front face
-		0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-		0.0f, 0.0f, 1.0f,
-
-		// Back face
-		0.0f, 0.0f, -1.0f,
-		0.0f, 0.0f, -1.0f,
-		0.0f, 0.0f, -1.0f,
-		0.0f, 0.0f, -1.0f,
-
-		// Left face
-		-1.0f, 0.0f, 0.0f,
-		-1.0f, 0.0f, 0.0f,
-		-1.0f, 0.0f, 0.0f,
-		-1.0f, 0.0f, 0.0f,
-
-		// Right face
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-		1.0f, 0.0f, 0.0f,
-
-		// Top face
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-		0.0f, 1.0f, 0.0f,
-
-		// Bottom face
-		0.0f, -1.0f, 0.0f,
-		0.0f, -1.0f, 0.0f,
-		0.0f, -1.0f, 0.0f,
-		0.0f, -1.0f, 0.0f,
-	};
-
-	// OpenGL buffers
-	GLuint vertexArrayID;
-	GLuint vertexBufferID;
-	GLuint indexBufferID;
-	GLuint colorBufferID;
-	GLuint uvBufferID;
-	GLuint textureID;
-	GLuint normalBufferID;
-	GLuint mvpMatrixID;
-	GLuint textureSamplerID;
-	GLuint programID, useTextureID;
-
-	//Shadows
-	GLuint lightSpaceMatrixID;
-	GLuint shadowMapID;
-
-
-	void initialize(glm::vec3 position, glm::vec3 scale, GLuint TextureID) {
-		// Define scale of the building geometry
-		this->position = position;
-		this->scale = scale;
-		this->textureID = TextureID;
-
-		// Create a vertex array object
-		glGenVertexArrays(1, &vertexArrayID);
-		glBindVertexArray(vertexArrayID);
-
-		// Create a vertex buffer object to store the vertex data
-		glGenBuffers(1, &vertexBufferID);
-		glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_buffer_data), vertex_buffer_data, GL_STATIC_DRAW);
-
-		// Create a vertex buffer object to store the color data
-        // TODO:
-		glGenBuffers(1, &colorBufferID);
-		glBindBuffer(GL_ARRAY_BUFFER, colorBufferID);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(color_buffer_data), color_buffer_data, GL_STATIC_DRAW);
-
-		for (int i = 0; i < 24; ++i) uv_buffer_data[2*i+1] *= 5;
-
-		glGenBuffers(1, &uvBufferID);
-		glBindBuffer(GL_ARRAY_BUFFER, uvBufferID);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(uv_buffer_data), uv_buffer_data,
-GL_STATIC_DRAW);
-
-		// Create an index buffer object to store the index data that defines triangle faces
-		glGenBuffers(1, &indexBufferID);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(index_buffer_data), index_buffer_data, GL_STATIC_DRAW);
-
-		glGenBuffers(1, &normalBufferID);
-		glBindBuffer(GL_ARRAY_BUFFER, normalBufferID);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(building_normal_buffer_data), building_normal_buffer_data, GL_STATIC_DRAW);
-
-
-		// Create and compile our GLSL program from the shaders
-		programID = LoadShadersFromFile("../lab2/shaders/box.vert", "../lab2/shaders/box.frag");
-		if (programID == 0)
-		{
-			std::cerr << "Failed to load shaders." << std::endl;
-		}
-
-		useTextureID = glGetUniformLocation(programID, "useTexture");
-		textureID = LoadTextureTileBox(("../lab2/futureBuildings.jpg"));
-		mvpMatrixID = glGetUniformLocation(programID, "MVP");
-        textureSamplerID = glGetUniformLocation(programID,"textureSampler");
-		lightSpaceMatrixID = glGetUniformLocation(programID, "lightSpaceMatrix");
-		shadowMapID = glGetUniformLocation(programID, "shadowMap");
-	}
-
-	void render(glm::mat4 cameraMatrix, glm::vec3 lightPos, glm::vec3 lightColor, glm::vec3 viewPos, glm::mat4 lightSpaceMatrix, GLuint depthMap) {
-		glUseProgram(programID);
-
-		// Set the MVP matrix
-		glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), position);
-		modelMatrix = glm::scale(modelMatrix, scale);
-		glm::mat4 mvp = cameraMatrix * modelMatrix;
-
-		//Uniforms:
-		glUniformMatrix4fv(mvpMatrixID, 1, GL_FALSE, &mvp[0][0]);
-		glUniformMatrix4fv(glGetUniformLocation(programID, "model"), 1, GL_FALSE, &modelMatrix[0][0]);
-		// Pass lighting uniforms
-		glUniform3fv(glGetUniformLocation(programID, "lightPos"), 1, &lightPos[0]);
-		glUniform3fv(glGetUniformLocation(programID, "lightColor"), 1, &lightColor[0]);
-		// Pass the view (camera) position
-		glUniform3fv(glGetUniformLocation(programID, "viewPos"), 1, &viewPos[0]);
-		glUniformMatrix4fv(lightSpaceMatrixID, 1, GL_FALSE, &lightSpaceMatrix[0][0]);
-
-		// Bind the depth map to texture unit 1
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, depthMap);
-		glUniform1i(shadowMapID, 1);
-
-
-		// Set useTexture to true for buildings
-		glUniform1i(useTextureID, GL_TRUE);
-
-		// Enable vertex attributes
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-		glEnableVertexAttribArray(1);
-		glBindBuffer(GL_ARRAY_BUFFER, colorBufferID);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-		glEnableVertexAttribArray(2);
-		glBindBuffer(GL_ARRAY_BUFFER, uvBufferID);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
-
-		glEnableVertexAttribArray(3);  // Assuming location 3 is for normals
-		glBindBuffer(GL_ARRAY_BUFFER, normalBufferID);
-		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-		// Bind texture
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textureID);
-		glUniform1i(textureSamplerID, 0);
-
-		// Draw the building
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-
-		// Disable attributes
-		glDisableVertexAttribArray(0);
-		glDisableVertexAttribArray(1);
-		glDisableVertexAttribArray(2);
-		glDisableVertexAttribArray(3);
-	}
-
-	void renderDepth(GLuint shaderProgramID, glm::mat4 lightSpaceMatrix) {
-		glUseProgram(shaderProgramID);
-
-		glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), position);
-		modelMatrix = glm::scale(modelMatrix, scale);
-
-		glUniformMatrix4fv(glGetUniformLocation(shaderProgramID, "lightSpaceMatrix"), 1, GL_FALSE, &lightSpaceMatrix[0][0]);
-		glUniformMatrix4fv(glGetUniformLocation(shaderProgramID, "model"), 1, GL_FALSE, &modelMatrix[0][0]);
-
-		glBindVertexArray(vertexArrayID);
-
-		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
-
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, (void*)0);
-
-		glDisableVertexAttribArray(0);
-	}
-
-
-	void cleanup() {
-		glDeleteBuffers(1, &vertexBufferID);
-		glDeleteBuffers(1, &colorBufferID);
-		glDeleteBuffers(1, &indexBufferID);
-		glDeleteVertexArrays(1, &vertexArrayID);
-		//glDeleteBuffers(1, &uvBufferID);
-		//glDeleteTextures(1, &textureID);
-		glDeleteProgram(programID);
-
-	}
-
-
+struct ObjModel {
+    glm::vec3 position; // Model position
+    glm::vec3 scale;    // Model scale
+
+    struct Mesh {
+        GLuint vao, vbo, ebo; // OpenGL buffers for each mesh
+        unsigned int indexCount; // Number of indices
+    	GLuint textureID;
+    };
+
+    std::vector<Mesh> meshes; // Store all meshes
+    GLuint programID; // Shader program
+    GLuint mvpMatrixID; // Uniform location
+    GLuint colorID; // Uniform location for color
+
+    void initialize(const std::string &path, glm::vec3 initPosition, glm::vec3 initScale) {
+        position = initPosition;
+        scale = initScale;
+
+        // Load shaders
+        programID = LoadShadersFromFile("../lab2/shaders/UFO/ufoModel.vert", "../lab2/shaders/UFO/ufoModel.frag");
+        glUseProgram(programID);
+        mvpMatrixID = glGetUniformLocation(programID, "MVP");
+        colorID = glGetUniformLocation(programID, "modelColor");
+
+        // Load .obj file using Assimp
+        Assimp::Importer importer;
+        const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
+
+        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+            std::cerr << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
+            return;
+        }
+
+        // Process all meshes
+        for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; meshIndex++) {
+            aiMesh *mesh = scene->mMeshes[meshIndex];
+            std::vector<float> vertices;
+            std::vector<unsigned int> indices;
+
+            // Process vertices
+            for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
+                vertices.push_back(mesh->mVertices[i].x);
+                vertices.push_back(mesh->mVertices[i].y);
+                vertices.push_back(mesh->mVertices[i].z);
+
+                if (mesh->mNormals) {
+                    vertices.push_back(mesh->mNormals[i].x);
+                    vertices.push_back(mesh->mNormals[i].y);
+                    vertices.push_back(mesh->mNormals[i].z);
+                } else {
+                    vertices.push_back(0.0f);
+                    vertices.push_back(0.0f);
+                    vertices.push_back(0.0f);
+                }
+            }
+
+            // Process indices
+            for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
+                aiFace face = mesh->mFaces[i];
+                for (unsigned int j = 0; j < face.mNumIndices; j++) {
+                    indices.push_back(face.mIndices[j]);
+                }
+            }
+
+            Mesh meshData;
+            meshData.indexCount = indices.size();
+
+            // OpenGL buffer setup
+            glGenVertexArrays(1, &meshData.vao);
+            glGenBuffers(1, &meshData.vbo);
+            glGenBuffers(1, &meshData.ebo);
+
+            glBindVertexArray(meshData.vao);
+
+            glBindBuffer(GL_ARRAY_BUFFER, meshData.vbo);
+            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshData.ebo);
+            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
+
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0); // Positions
+            glEnableVertexAttribArray(0);
+
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float))); // Normals
+            glEnableVertexAttribArray(1);
+
+            glBindVertexArray(0);
+
+        	//Texture
+        	if (mesh->mMaterialIndex >= 0) {
+        		aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
+        		aiString texPath;
+
+        		if (material->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == AI_SUCCESS) {
+        			std::string fullPath = texPath.C_Str();
+        			meshData.textureID = LoadTextureTileBox(fullPath.c_str());
+        		} else {
+        			meshData.textureID = 0; // No texture
+        		}
+        	}
+
+            meshes.push_back(meshData);
+        }
+    }
+
+    void render(glm::mat4 vpMatrix) {
+        glUseProgram(programID);
+
+        glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), position);
+        modelMatrix = glm::scale(modelMatrix, scale);
+        glm::mat4 mvp = vpMatrix * modelMatrix;
+
+        glUniformMatrix4fv(mvpMatrixID, 1, GL_FALSE, &mvp[0][0]);
+
+
+        for (const auto &mesh : meshes) {
+        	if (mesh.textureID != 0) {
+        		glActiveTexture(GL_TEXTURE0);
+        		glBindTexture(GL_TEXTURE_2D, mesh.textureID);
+        	}
+        	glBindVertexArray(mesh.vao);
+            glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, 0);
+            glBindVertexArray(0);
+        }
+    }
+
+    void cleanup() {
+        for (const auto &mesh : meshes) {
+            glDeleteBuffers(1, &mesh.vbo);
+            glDeleteBuffers(1, &mesh.ebo);
+            glDeleteVertexArrays(1, &mesh.vao);
+        }
+        glDeleteProgram(programID);
+    }
 };
-*/
 
-//Collision detection for the models
-bool isSafe(const glm::vec3& position, const std::vector<Building>& buildings) {
-	for (const auto& building : buildings) {
-		float buildingRadius = 5.0f;
-		if (glm::distance(position, building.position) < buildingRadius) {
-			return false;  // Too close to a building
-		}
-	}
-	return true;
-}
 
 
 
@@ -735,6 +522,7 @@ void updateHoverCars(std::vector<HoverCar>& hoverCars, float deltaTime, float ta
 	}
 }
 
+
 int main(void)
 {
 	// Initialise GLFW
@@ -886,6 +674,8 @@ int main(void)
 	ParticleSystem particles;
 	particles.initialize(3000, rows, cols, spacing);
 
+	ObjModel myModel;
+	myModel.initialize("../lab2/models/UFO/correctUFO.obj",glm::vec3(56.4475f, 10.0f, -275.218f), glm::vec3(10.0f));
 
 	glm::vec3 lightPos = cityCenterSky + glm::vec3(200.0f, 800.0f, 200.0f);
 	glm::vec3 lightColor(1.0f, 1.0f, 1.0f);     // Green light
@@ -968,10 +758,16 @@ int main(void)
 		}
 		bot.render(vp);
 		bot2.render(vp);
+		glm::vec3 modelColor = glm::vec3(0.8f, 0.1f, 0.3f);
+		glDisable(GL_CULL_FACE);
+		myModel.render(vp);
+		glEnable(GL_CULL_FACE);
+
 		//Have this in to debug the cylinder drone but it doesnt work
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		drone.render(vp, lightPos, lightColor, eye_center, depthMap, lightSpaceMatrix);
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
 		sign.render(vp);
 		glDisable(GL_CULL_FACE);
 		for (auto& car : hoverCars) {
@@ -983,9 +779,6 @@ int main(void)
 		particles.render(vp);
 		glEnable(GL_CULL_FACE);
 		//particleSystem.render(vp);
-
-
-
 
 		//Debug the camera posititon so I can exactly choose where I want certain elements
 

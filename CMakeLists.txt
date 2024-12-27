@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.0)
 project(lab2)
 
+set(CMAKE_TOOLCHAIN_FILE "C:/Users/JAMIE/.vcpkg-clion/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "Vcpkg toolchain file")
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
+
+find_package(assimp CONFIG REQUIRED)
 find_package(OpenGL REQUIRED)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}")
@@ -44,4 +48,5 @@ target_link_libraries(lab2_building
 	${OPENGL_LIBRARY}
 	glfw
 	glad
+		assimp::assimp
 )
