@@ -661,7 +661,7 @@ int main(void)
 	glm::vec3 cityCenterSky = glm::vec3((rows - 1) * spacing / 2.0f, 0, (cols - 1) * spacing / 2.0f);
 	SkyBox skybox;
 	glm::vec3 skyboxScale(1000.0f, 1000.0f, 1000.0f);
-	skybox.initialize(cityCenterSky, glm::vec3(rows * spacing, rows * spacing, rows * spacing), "../lab2/StandardCubeMap.png");
+	skybox.initialize(cityCenterSky, glm::vec3(rows * spacing, rows * spacing, rows * spacing), "../lab2/SpaceMap.png");
 
 	animationModel bot;
 	bot.initialize(glm::vec3(52.176f, 0.0f, -323.899f));
