@@ -12,7 +12,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <tiny_gltf.h>
-#include "components/Building.h"
+//#include "components/Building.h"
 
 
 #include <vector>

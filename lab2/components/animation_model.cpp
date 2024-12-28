@@ -9,7 +9,7 @@
 #define BUFFER_OFFSET(offset) ((char*)nullptr + (offset))
 #include <tiny_gltf.h>
 #include <stb/stb_image.h>
-#include "components/Building.h"
+//#include "components/Building.h"
 
 
 /*

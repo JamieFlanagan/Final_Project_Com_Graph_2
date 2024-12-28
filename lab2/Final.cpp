@@ -20,7 +20,7 @@
 #include "components/skyBox.h"
 #include "components/drone.h"
 #include "components/floor.h"
-#include "components/Building.h"
+#include "components/Buildings/Building.h"
 #include "components/animation_model.h"
 #include "components/WelcomeSign/WelcomeSign.h"
 
@@ -510,6 +510,79 @@ struct HoverCar{
 	}
 };
 
+struct Flag {
+    glm::vec3 position;
+    glm::vec3 scale;
+    GLuint textureID;
+    GLuint vertexArrayID, vertexBufferID, uvBufferID, programID;
+
+	GLfloat vertices[12] = {
+		-0.5f,  0.5f, 0.0f, // Top-left
+		 0.5f,  0.5f, 0.0f, // Top-right
+		-0.5f, -0.5f, 0.0f, // Bottom-left
+		 0.5f, -0.5f, 0.0f  // Bottom-right
+	};
+
+	GLfloat uvCoords[12] = {
+		0.0f, 1.0f, // Top-left
+		1.0f, 1.0f, // Top-right
+		0.0f, 0.0f, // Bottom-left
+		1.0f, 0.0f  // Bottom-right
+	};
+
+    void initialize(glm::vec3 initPosition, glm::vec3 initScale, GLuint texture) {
+        position = initPosition;
+        scale = initScale;
+        textureID = texture;
+
+    	programID = LoadShadersFromFile("../lab2/shaders/Flag/flag.vert", "../lab2/shaders/Flag/flag.frag");
+        // Define vertices for a plane
+
+
+        glGenVertexArrays(1, &vertexArrayID);
+        glBindVertexArray(vertexArrayID);
+
+        glGenBuffers(1, &vertexBufferID);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(0);
+
+        glGenBuffers(1, &uvBufferID);
+        glBindBuffer(GL_ARRAY_BUFFER, uvBufferID);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(uvCoords), uvCoords, GL_STATIC_DRAW);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(1);
+
+        glBindVertexArray(0);
+    }
+
+    void render(glm::mat4 vpMatrix) {
+        glUseProgram(programID);
+
+        glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), position);
+        modelMatrix = glm::scale(modelMatrix, scale);
+        glm::mat4 mvp = vpMatrix * modelMatrix;
+
+        glUniformMatrix4fv(glGetUniformLocation(programID, "MVP"), 1, GL_FALSE, &mvp[0][0]);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, textureID);
+        glUniform1i(glGetUniformLocation(programID, "textureSampler"), 0);
+
+        glBindVertexArray(vertexArrayID);
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+        glBindVertexArray(0);
+    }
+
+    void cleanup() {
+        glDeleteBuffers(1, &vertexBufferID);
+        glDeleteBuffers(1, &uvBufferID);
+        glDeleteVertexArrays(1, &vertexArrayID);
+    }
+};
+
+
 
 
 //Make the cubes move
@@ -602,7 +675,7 @@ int main(void)
 
 	//textures.push_back(buildText);
 	textures.push_back(LoadTextureTileBox("../lab2/nightCity.jpg"));
-	textures.push_back(LoadTextureTileBox("../lab2/nightCity2.jpg"));
+	textures.push_back(LoadTextureTileBox("../lab2/cityBuilding.jpg"));
 	textures.push_back(LoadTextureTileBox("../lab2/nightCity3.jpg"));
 	std::uniform_int_distribution<> texture_dist(0, textures.size() - 1);
 	float x=0;
@@ -637,9 +710,7 @@ int main(void)
 	//Drone creation stemming from sphere Idea
 	Drone drone;
 	GLuint guinessTexture = LoadTextureTileBox("../lab2/guinessAddFix.jpg");
-
 	drone.initialize(glm::vec3(100.0f, -800.0f, 60.0f), guinessTexture);
-
 
 	GLuint carTexture = LoadTextureTileBox("../lab2/hoverCar2.jpg");
 	//Hover car
@@ -653,10 +724,6 @@ int main(void)
 		car.initialize(carPosition, carScale, carColor, carTexture);
 		hoverCars.push_back(car);
 	}
-
-	//sphere movement
-	float lastFrame =0.0f;
-	float currentFrame;
 
 	//SkyBox
 	glm::vec3 cityCenterSky = glm::vec3((rows - 1) * spacing / 2.0f, 0, (cols - 1) * spacing / 2.0f);
@@ -689,6 +756,11 @@ int main(void)
 
 	ObjModel myModel;
 	myModel.initialize("../lab2/models/UFO/correctUFO.obj",glm::vec3(56.4475f, 10.0f, -275.218f), glm::vec3(10.0f));
+
+	//Flag
+	GLuint irishFlagTexture = LoadTextureTileBox("../lab2/irishFlag.jpg");
+	Flag flag;
+	flag.initialize(glm::vec3(-0.3, 42.4078, -212.365), glm::vec3(30.0f, 20.0f, 1.0f), irishFlagTexture);
 
 	glm::vec3 lightPos = cityCenterSky + glm::vec3(200.0f, 800.0f, 200.0f);
 	glm::vec3 lightColor(1.0f, 1.0f, 1.0f);     // Green light
@@ -773,7 +845,7 @@ int main(void)
 		glDisable(GL_CULL_FACE);
 		particles.render(vp);
 		glEnable(GL_CULL_FACE);
-		//particleSystem.render(vp);
+		flag.render(vp);
 
 		frames++;
 		fTime += deltaTime;
@@ -822,7 +894,7 @@ int main(void)
 	bot2.cleanup();
 	particles.cleanup();
 	drone.cleanup();
-
+	flag.cleanup();
 	//particleSystem.cleanup();
 
 	// Close OpenGL window and terminate GLFW

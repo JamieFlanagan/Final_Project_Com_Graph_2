@@ -2,7 +2,7 @@
 // Created by JAMIE on 13/12/2024.
 //
 
-#include "components/Building.h"
+#include "components/Buildings/Building.h"
 #include <render/shader.h>
 #include <stb/stb_image.h>
 #include <iostream>
