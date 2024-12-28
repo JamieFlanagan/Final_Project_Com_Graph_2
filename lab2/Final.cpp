@@ -23,6 +23,7 @@
 #include "components/Buildings/Building.h"
 #include "components/animation_model.h"
 #include "components/WelcomeSign/WelcomeSign.h"
+#include "components/Flag/Flag.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -30,11 +31,7 @@
 
 #include <tiny_gltf.h>
 
-
-#include "components/CoolerParticles/movingParticles.h"
 #include "components/ParticleSystem/ParticleSystem.h"
-
-
 
 static GLFWwindow *window;
 static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
@@ -510,6 +507,7 @@ struct HoverCar{
 	}
 };
 
+/*
 struct Flag {
     glm::vec3 position;
     glm::vec3 scale;
@@ -581,7 +579,7 @@ struct Flag {
         glDeleteVertexArrays(1, &vertexArrayID);
     }
 };
-
+*/
 
 
 

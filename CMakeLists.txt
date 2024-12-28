@@ -43,6 +43,8 @@ add_executable(lab2_building
 		lab2/components/WelcomeSign/WelcomeSign.h
 		lab2/components/CoolerParticles/movingParticles.cpp
 		lab2/components/CoolerParticles/movingParticles.h
+		lab2/components/Flag/Flag.cpp
+		lab2/components/Flag/Flag.h
 )
 target_link_libraries(lab2_building
 	${OPENGL_LIBRARY}
