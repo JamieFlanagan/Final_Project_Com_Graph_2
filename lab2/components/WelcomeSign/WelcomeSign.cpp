@@ -178,16 +178,17 @@ void WelcomeSign::render(glm::mat4 cameraMatrix) {
     glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), position);
     glm::mat4 mvp = cameraMatrix * modelMatrix;
 
-
-    glUniform1i(glGetUniformLocation(programID, "useTexture"), GL_TRUE);
     glUniformMatrix4fv(mvpMatrixID, 1, GL_FALSE, &mvp[0][0]);
     glUniformMatrix4fv(modelMatrixID, 1, GL_FALSE, &modelMatrix[0][0]);
+    glUniform1i(glGetUniformLocation(programID, "useTexture"), GL_TRUE);
+
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, textureID);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glUniform1i(glGetUniformLocation(programID, "textureSampler"), 0);
+
 
     glEnableVertexAttribArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);

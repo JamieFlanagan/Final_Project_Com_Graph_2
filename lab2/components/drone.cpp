@@ -33,15 +33,15 @@ static GLuint LoadTextureTileBox(const char *texture_file_path) {
     return texture;
 }
 
-void Drone::initialize(glm::vec3 startPosition, GLuint guinessTexture) {
+void Drone::initialize(glm::vec3 startPosition, GLuint texture) {
     position = startPosition;
-    textureID = guinessTexture;
+    textureID = texture;
     height = startPosition.y;
 
     generateDroneBody();
     generateRotors();
 
-    programID = LoadShadersFromFile("../lab2/shaders/box.vert", "../lab2/shaders/box.frag");
+    programID = LoadShadersFromFile("../lab2/shaders/Drone/drone.vert", "../lab2/shaders/drone/drone.frag");
     mvpMatrixID = glGetUniformLocation(programID, "MVP");
     textureSamplerID = glGetUniformLocation(programID, "textureSampler");
     useTextureID = glGetUniformLocation(programID, "useTexture");

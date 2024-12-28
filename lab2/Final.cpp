@@ -593,6 +593,7 @@ int main(void)
 	int cols = 7;
 	float spacing = 65;
 
+
 	std::vector<GLuint> textures;
 
 	std::random_device rd;
@@ -636,7 +637,8 @@ int main(void)
 	//Drone creation stemming from sphere Idea
 	Drone drone;
 	GLuint guinessTexture = LoadTextureTileBox("../lab2/guinessAddFix.jpg");
-	drone.initialize(glm::vec3(100.0f, 300.0f, 60.0f), guinessTexture);
+
+	drone.initialize(glm::vec3(100.0f, -800.0f, 60.0f), guinessTexture);
 
 
 	GLuint carTexture = LoadTextureTileBox("../lab2/hoverCar2.jpg");
@@ -717,22 +719,11 @@ int main(void)
 		//move bots
 		bot.moveToTarget(deltaTime);
 		bot2.moveToTarget(deltaTime);
-
-		/*
-		float animationDuration = bot.animationObjects[0].samplers[0].input.back();
-		animationTime = fmod(animationTime + (deltaTime * animSpeed), animationDuration);
-		*/
-
 		//character update
 		bot.update(time);
-
-
 		bot2.update(time);
 		particles.update(deltaTime);
 		updateHoverCars(hoverCars, deltaTime, tallestBuildingHeight);
-		//particleSystem.update(deltaTime);
-
-		//Infinite scene
 
 	// Shadow pass
 		glViewport(0, 0, shadow_width, shadow_height);
@@ -752,11 +743,6 @@ int main(void)
 
 		//Render normally
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
-		if (saveDepthMap) {
-			saveDepthTexture(depthMapFBO, "depth_map_file.png");
-			std::cout << "Depth map saved to depth_map_file.png" << std::endl;
-			saveDepthMap = false; // Reset the flag after saving
-		}
 		glViewport(0, 0, 1024, 768);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -776,12 +762,7 @@ int main(void)
 		glDisable(GL_CULL_FACE);
 		myModel.render(vp, deltaTime);
 		glEnable(GL_CULL_FACE);
-
-		//Have this in to debug the cylinder drone but it doesnt work
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		drone.render(vp, lightPos, lightColor, eye_center, depthMap, lightSpaceMatrix);
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
 		sign.render(vp);
 		glDisable(GL_CULL_FACE);
 		for (auto& car : hoverCars) {
@@ -840,6 +821,7 @@ int main(void)
 	bot.cleanup();
 	bot2.cleanup();
 	particles.cleanup();
+	drone.cleanup();
 
 	//particleSystem.cleanup();
 
