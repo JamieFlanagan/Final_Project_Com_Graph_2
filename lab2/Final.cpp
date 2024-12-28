@@ -33,8 +33,6 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
 
 // OpenGL camera view parameters
 static glm::vec3 eye_center(-0.73395, 10.0f, -341.383f);
-//Debug eye center for spawning very high in the scene
-//static glm::vec3 eye_center(29.2804, 952.36, -344.483);
 static glm::vec3 lookat(0, 0, 0);
 static glm::vec3 up(0, 1, 0);
 static glm:: vec3 forward;
@@ -47,19 +45,19 @@ static float viewDistance = 600.0f;
 static float movementSpeed = 2.5f;
 static float rotationSpeed = 3.0f;
 
-//Shadows
+//Shadow Map settings
 const unsigned int shadow_width = 4096, shadow_height = 4096;
 GLuint depthMapFBO;
 GLuint depthMap;
 bool saveDepthMap =false;
 
-
-//Lighting
+//Light setup
 glm::vec3 lightPosition(100.0f, 800.0f, 0.0f);
 glm::vec3 lightColor(1.0f, 1.0f, 1.0f);       // White light
 glm::vec3 viewPosition;
 static glm::vec3 lightLookAt(0.0f, 0.0f, 0.0f);
 
+//Bot way points
 std::vector<glm::vec3> wayPoints ={
 	glm::vec3(98.076f, 0.0f, -160.728f),
 	glm::vec3(96.36f, 0.0f, 99.2665f),
@@ -72,7 +70,6 @@ std::vector<glm::vec3> wayPointsBot2 ={
 	glm::vec3(-94.4001, 0, -33.657),
 	glm::vec3(-94.4001, 0.0, -161.157)
 };
-
 std::vector<glm::vec3> wayPointsBot3 ={
 	glm::vec3(281.15f, 0.0f, -247.148f),  // Start point
 	glm::vec3(-256.338f, 0.0f, -247.148f),  // Second corner
@@ -80,7 +77,7 @@ std::vector<glm::vec3> wayPointsBot3 ={
 	glm::vec3(278.052f, 0.0f, 251.071f)
 };
 
-
+//Function To load textures
 static GLuint LoadTextureTileBox(const char *texture_file_path) {
     int w, h, channels;
     uint8_t* img = stbi_load(texture_file_path, &w, &h, &channels, 3);
@@ -105,6 +102,7 @@ static GLuint LoadTextureTileBox(const char *texture_file_path) {
     return texture;
 }
 
+//Function to save DepthMap from lab3 used for debugging shadows
 static void saveDepthTexture(GLuint fbo, std::string filename) {
 	int width = shadow_width;
 	int height = shadow_height;
@@ -150,7 +148,7 @@ void initializeShadowMap() {
 void updateHoverCars(std::vector<HoverCar>& hoverCars, float deltaTime, float tallestBuildingHeight) {
 	//Base variables so they dont overlap
 	float baseRadius = 100.0f; // The start radius
-	float radiusIncrement= 75.0f; // Incremenet for each car
+	float radiusIncrement= 75.0f; // Increment for each car
 	float speedChange= 0.5f; // vary the speed of cars
 
 	for (size_t i = 0; i < hoverCars.size(); ++i) {
@@ -175,7 +173,7 @@ int main(void)
 		std::cerr << "Failed to initialize GLFW." << std::endl;
 		return -1;
 	}
-
+	//Window properties
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // For MacOS
@@ -191,7 +189,7 @@ int main(void)
 	}
 	glfwMakeContextCurrent(window);
 
-	// Ensure we can capture the escape key being pressed below
+	// Ensure we can capture keys being pressed below
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 	glfwSetKeyCallback(window, key_callback);
 
@@ -206,7 +204,7 @@ int main(void)
 
 	// Background
 	glClearColor(0.2f, 0.2f, 0.25f, 0.0f);
-	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST); //Enable depth Testing
 	glEnable(GL_CULL_FACE);
 
 	//Shadow Map init
@@ -214,19 +212,21 @@ int main(void)
 	//Shadow Map shader
 	GLuint depthShaderProg =LoadShadersFromFile("../lab2/shaders/depth.vert", "../lab2/shaders/depth.frag");
 
-	//The ground
+	// Object set up for the scene-----
+
+	//Create the floor object and load its texture
 	Floor floor;
 	GLuint floorTexture = LoadTextureTileBox("../lab2/myTextures/ground.jpg");
 	floor.initialize(floorTexture);
-	float floorSize = 800.0f;
+	//float floorSize = 800.0f;
 
-	//My buildings
-	int rows =7;
-	int cols = 7;
-	float spacing = 65;
+	//Initialize a grid of buildings with random heights and textures
+	int rows =7; // Num rows
+	int cols = 7; // Num cols
+	float spacing = 65; //Space between buildings
 
-	std::vector<GLuint> textures;
-	std::random_device rd;
+	std::vector<GLuint> textures; // Store the building textures
+	std::random_device rd; //
 	std::mt19937 gen(rd());
 	textures.push_back(LoadTextureTileBox("../lab2/myTextures/nightCity.jpg"));
 	textures.push_back(LoadTextureTileBox("../lab2/myTextures/cityBuilding.jpg"));
@@ -246,12 +246,11 @@ int main(void)
 			// Compute position of each building
 			glm::vec3 position = glm::vec3(offsetX + i * spacing, 0.0f, offsetZ + j * spacing);
 
-			// Set a random height for variety (you can use your desired range)
+			// Set a random height
 			float height = 30.0f + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX / (150.0f - 30.0f)));
 			glm::vec3 scale = glm::vec3(16.0f, height, 16.0f);
 
 			// Adjust position.y to account for the height
-			position.y = height;
 			position.y = height;
 			GLuint random_texture = textures[texture_dist(gen)];
 			b.initialize(position, scale, random_texture);
@@ -325,10 +324,17 @@ int main(void)
 	ObjModel myModel;
 	myModel.initialize("../lab2/models/UFO/correctUFO.obj",glm::vec3(56.4475f, 10.0f, -275.218f), glm::vec3(10.0f));
 
+	ObjModel satellite;
+	satellite.initialize("../lab2/models/Satellite/satellite.obj",glm::vec3(56.4475f, 80.0f, -275.218f), glm::vec3(10.0f));
+
 	//Flag
 	GLuint irishFlagTexture = LoadTextureTileBox("../lab2/myTextures/irishFlag.jpg");
 	Flag flag;
 	flag.initialize(glm::vec3(-0.3, 42.4078, -212.365), glm::vec3(30.0f, 20.0f, 1.0f), irishFlagTexture);
+
+	GLuint dublinTexture = LoadTextureTileBox("../lab2/myTextures/dublinSign.jpg");
+	Flag welcomeDublinFlag;
+	welcomeDublinFlag.initialize(glm::vec3(65.3867, 42.3414, -212.539),glm::vec3(30.0f, 20.0f, 1.0f), dublinTexture);
 
 	//Lighting setup
 	glm::vec3 lightPos = cityCenterSky + glm::vec3(200.0f, 800.0f, 200.0f);
@@ -408,6 +414,7 @@ int main(void)
 		bot3.render(vp);
 		glDisable(GL_CULL_FACE);
 		myModel.render(vp, deltaTime);
+		satellite.render(vp,deltaTime);
 		glEnable(GL_CULL_FACE);
 		drone.render(vp, lightPos, lightColor, eye_center, depthMap, lightSpaceMatrix);
 		sign.render(vp);
@@ -421,7 +428,7 @@ int main(void)
 		irishParticles.render(vp);
 		glEnable(GL_CULL_FACE);
 		flag.render(vp);
-
+		welcomeDublinFlag.render(vp);
 		//Frame rate calculation
 		frames++;
 		fTime += deltaTime;
@@ -472,6 +479,9 @@ int main(void)
 	particles.cleanup();
 	drone.cleanup();
 	flag.cleanup();
+	myModel.cleanup();
+	satellite.cleanup();
+	welcomeDublinFlag.cleanup();
 	irishParticles.cleanup();
 
 	// Close OpenGL window and terminate GLFW
