@@ -13,9 +13,6 @@
 #include <bits/random.h>
 #include <random>
 #include <iostream>
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
 #include <stb/stb_image_write.h>
 #include <tiny_gltf.h>
 //Components
@@ -29,6 +26,7 @@
 #include "components/CoolerParticles/movingParticles.h"
 #include "components/ParticleSystem/ParticleSystem.h"
 #include "components/HoverCar/HoverCar.h"
+#include "components/ObjModel/ObjModel.h"
 
 static GLFWwindow *window;
 static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
@@ -128,157 +126,7 @@ static void saveDepthTexture(GLuint fbo, std::string filename) {
 	stbi_write_png(filename.c_str(), width, height, channels, img.data(), width * channels);
 }
 
-struct ObjModel {
-    glm::vec3 position; // Model position
-    glm::vec3 scale;    // Model scale
-
-	//Hover variables
-	float hoverTime = 0.0f;
-	float hoverAmplitude = 0.5f;
-	float hoverFrequency = 2.0f;
-
-    struct Mesh {
-        GLuint vao, vbo, ebo; // OpenGL buffers for each mesh
-        unsigned int indexCount; // Number of indices
-    	GLuint textureID;
-    };
-
-    std::vector<Mesh> meshes; // Store all meshes
-    GLuint programID; // Shader program
-    GLuint mvpMatrixID; // Uniform location
-    GLuint colorID; // Uniform location for color
-
-    void initialize(const std::string &path, glm::vec3 initPosition, glm::vec3 initScale) {
-        position = initPosition;
-        scale = initScale;
-
-        // Load shaders
-        programID = LoadShadersFromFile("../lab2/shaders/UFO/ufoModel.vert", "../lab2/shaders/UFO/ufoModel.frag");
-        glUseProgram(programID);
-        mvpMatrixID = glGetUniformLocation(programID, "MVP");
-        colorID = glGetUniformLocation(programID, "modelColor");
-
-        // Load .obj file using Assimp
-        Assimp::Importer importer;
-        const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
-
-        if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-            std::cerr << "ERROR::ASSIMP::" << importer.GetErrorString() << std::endl;
-            return;
-        }
-
-        // Process all meshes
-        for (unsigned int meshIndex = 0; meshIndex < scene->mNumMeshes; meshIndex++) {
-            aiMesh *mesh = scene->mMeshes[meshIndex];
-            std::vector<float> vertices;
-            std::vector<unsigned int> indices;
-
-            // Process vertices
-            for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
-                vertices.push_back(mesh->mVertices[i].x);
-                vertices.push_back(mesh->mVertices[i].y);
-                vertices.push_back(mesh->mVertices[i].z);
-
-                if (mesh->mNormals) {
-                    vertices.push_back(mesh->mNormals[i].x);
-                    vertices.push_back(mesh->mNormals[i].y);
-                    vertices.push_back(mesh->mNormals[i].z);
-                } else {
-                    vertices.push_back(0.0f);
-                    vertices.push_back(0.0f);
-                    vertices.push_back(0.0f);
-                }
-            }
-
-            // Process indices
-            for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
-                aiFace face = mesh->mFaces[i];
-                for (unsigned int j = 0; j < face.mNumIndices; j++) {
-                    indices.push_back(face.mIndices[j]);
-                }
-            }
-
-            Mesh meshData;
-            meshData.indexCount = indices.size();
-
-            // OpenGL buffer setup
-            glGenVertexArrays(1, &meshData.vao);
-            glGenBuffers(1, &meshData.vbo);
-            glGenBuffers(1, &meshData.ebo);
-
-            glBindVertexArray(meshData.vao);
-
-            glBindBuffer(GL_ARRAY_BUFFER, meshData.vbo);
-            glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
-
-            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, meshData.ebo);
-            glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
-
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)0); // Positions
-            glEnableVertexAttribArray(0);
-
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *)(3 * sizeof(float))); // Normals
-            glEnableVertexAttribArray(1);
-
-            glBindVertexArray(0);
-
-        	//Texture
-        	if (mesh->mMaterialIndex >= 0) {
-        		aiMaterial *material = scene->mMaterials[mesh->mMaterialIndex];
-        		aiString texPath;
-
-        		if (material->GetTexture(aiTextureType_DIFFUSE, 0, &texPath) == AI_SUCCESS) {
-        			std::string fullPath = texPath.C_Str();
-        			meshData.textureID = LoadTextureTileBox(fullPath.c_str());
-        		} else {
-        			meshData.textureID = 0; // No texture
-        		}
-        	}
-
-            meshes.push_back(meshData);
-        }
-    }
-
-    void render(glm::mat4 vpMatrix, float deltaTime) {
-        glUseProgram(programID);
-
-    	//Add slight hover to the UFO
-    	hoverTime+=deltaTime;
-    	float hoverOffSet = hoverAmplitude*std::sin(hoverFrequency*hoverTime);
-		glm::vec3 hoverPostition = position;
-    	hoverPostition.y+=hoverOffSet;
-
-        glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), hoverPostition);
-        modelMatrix = glm::scale(modelMatrix, scale);
-        glm::mat4 mvp = vpMatrix * modelMatrix;
-
-        glUniformMatrix4fv(mvpMatrixID, 1, GL_FALSE, &mvp[0][0]);
-
-
-        for (const auto &mesh : meshes) {
-        	if (mesh.textureID != 0) {
-        		glActiveTexture(GL_TEXTURE0);
-        		glBindTexture(GL_TEXTURE_2D, mesh.textureID);
-        	}
-        	glBindVertexArray(mesh.vao);
-            glDrawElements(GL_TRIANGLES, mesh.indexCount, GL_UNSIGNED_INT, 0);
-            glBindVertexArray(0);
-        }
-    }
-
-    void cleanup() {
-        for (const auto &mesh : meshes) {
-            glDeleteBuffers(1, &mesh.vbo);
-            glDeleteBuffers(1, &mesh.ebo);
-            glDeleteVertexArrays(1, &mesh.vao);
-        }
-        glDeleteProgram(programID);
-    }
-};
-
-
-
-
+//Function to set up the shadow map
 void initializeShadowMap() {
 	// Create the depth framebuffer
 	glGenFramebuffers(1, &depthMapFBO);
@@ -298,9 +146,8 @@ void initializeShadowMap() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-//Make the cubes move
+//Make the hovercars move
 void updateHoverCars(std::vector<HoverCar>& hoverCars, float deltaTime, float tallestBuildingHeight) {
-
 	//Base variables so they dont overlap
 	float baseRadius = 100.0f; // The start radius
 	float radiusIncrement= 75.0f; // Incremenet for each car
@@ -319,7 +166,6 @@ void updateHoverCars(std::vector<HoverCar>& hoverCars, float deltaTime, float ta
 		hoverCars[i].position.z = radius * sin(glfwGetTime() * speed + phaseShift);
 	}
 }
-
 
 int main(void)
 {
@@ -363,8 +209,8 @@ int main(void)
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
+	//Shadow Map init
 	initializeShadowMap();
-
 	//Shadow Map shader
 	GLuint depthShaderProg =LoadShadersFromFile("../lab2/shaders/depth.vert", "../lab2/shaders/depth.frag");
 
@@ -379,14 +225,9 @@ int main(void)
 	int cols = 7;
 	float spacing = 65;
 
-
 	std::vector<GLuint> textures;
-
 	std::random_device rd;
 	std::mt19937 gen(rd());
-
-
-	//textures.push_back(buildText);
 	textures.push_back(LoadTextureTileBox("../lab2/myTextures/nightCity.jpg"));
 	textures.push_back(LoadTextureTileBox("../lab2/myTextures/cityBuilding.jpg"));
 	textures.push_back(LoadTextureTileBox("../lab2/myTextures/nightCity3.jpg"));
@@ -412,8 +253,6 @@ int main(void)
 			// Adjust position.y to account for the height
 			position.y = height;
 			position.y = height;
-			std::cout << "Textures size: " << textures.size() << std::endl;
-			std::cout << "Random index: " << texture_dist(gen) << std::endl;
 			GLuint random_texture = textures[texture_dist(gen)];
 			b.initialize(position, scale, random_texture);
 			buildings.push_back(b);
@@ -425,9 +264,9 @@ int main(void)
 	GLuint guinessTexture = LoadTextureTileBox("../lab2/myTextures/guinessAddFix.jpg");
 	drone.initialize(glm::vec3(100.0f, -800.0f, 60.0f), guinessTexture);
 
+	//Hover Car init
 	GLuint carTexture = LoadTextureTileBox("../lab2/myTextures/hoverCar2.jpg");
-	//Hover car
-	float tallestBuildingHeight=350.0f;
+	float tallestBuildingHeight=350.0f; // This is used to stop cars from being where buildings can be
 	std::vector<HoverCar> hoverCars;
 	for (int i = 0; i < 5; ++i) {
 		HoverCar car;
@@ -444,6 +283,7 @@ int main(void)
 	glm::vec3 skyboxScale(1000.0f, 1000.0f, 1000.0f);
 	skybox.initialize(cityCenterSky, glm::vec3(rows * spacing, rows * spacing, rows * spacing), "../lab2/myTextures/SpaceMap.png");
 
+	//Models
 	animationModel bot;
 	bot.initialize(glm::vec3(52.176f, 0.0f, -323.899f));
 	bot.targetPosition=wayPoints[0];
@@ -474,12 +314,14 @@ int main(void)
 	ParticleSystem particles;
 	particles.initialize(3000, rows, cols, spacing);
 
+	//Irish colour particle system surrounding UFO
 	IrishParticleSystem irishParticles;
 	irishParticles.initialize(2000, rows, cols, spacing, glm::vec3(56.4475f, 0.0f, -275.218f));
 	irishParticles.setSwirlSpeed(2.0f);
 	irishParticles.setConeHeight(50.0f);
 	irishParticles.setConeBaseRadius(15.0f);
 
+	//UFO object
 	ObjModel myModel;
 	myModel.initialize("../lab2/models/UFO/correctUFO.obj",glm::vec3(56.4475f, 10.0f, -275.218f), glm::vec3(10.0f));
 
@@ -488,6 +330,7 @@ int main(void)
 	Flag flag;
 	flag.initialize(glm::vec3(-0.3, 42.4078, -212.365), glm::vec3(30.0f, 20.0f, 1.0f), irishFlagTexture);
 
+	//Lighting setup
 	glm::vec3 lightPos = cityCenterSky + glm::vec3(200.0f, 800.0f, 200.0f);
 	glm::vec3 lightColor(1.0f, 1.0f, 1.0f);     // Green light
 	glm::vec3 viewPos = eye_center;              // Camera position
@@ -502,14 +345,15 @@ int main(void)
 	projectionMatrix = glm::perspective(glm::radians(FoV), 4.0f / 3.0f, zNear, zFar);
 
 	float time = 0.0f;
+
 	// Time and frame rate tracking
 	float fTime = 0.0f;			// Time for measuring fps
 	unsigned long frames = 0;
 	do
 	{
+		//Time set up
 		float animationTime = 0.0f;
 		const float animSpeed = 1.0f;
-		//For sphere movement get delta time
 		float currentTime = glfwGetTime();
 		float deltaTime = currentTime - time;
 		time = currentTime;
@@ -533,12 +377,12 @@ int main(void)
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 		glClear(GL_DEPTH_BUFFER_BIT);
 
+		//Set up lightspace matrix
 		glm::mat4 lightProjection = glm::ortho(-1000.0f, 1000.0f, -1000.0f, 1000.0f, 1.0f, 1000.0f);
 		glm::mat4 lightView = glm::lookAt(lightPosition, lightLookAt, glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-
+		//Render depth Map for shadows
 		floor.renderDepth(depthShaderProg, lightSpaceMatrix);
-
 		for (auto& building : buildings) {
 			building.renderDepth(depthShaderProg, lightSpaceMatrix);
 		}
@@ -562,7 +406,6 @@ int main(void)
 		bot.render(vp);
 		bot2.render(vp);
 		bot3.render(vp);
-		glm::vec3 modelColor = glm::vec3(0.8f, 0.1f, 0.3f);
 		glDisable(GL_CULL_FACE);
 		myModel.render(vp, deltaTime);
 		glEnable(GL_CULL_FACE);
@@ -573,13 +416,13 @@ int main(void)
 			car.render(vp);
 		}
 		glEnable(GL_CULL_FACE);
-		//disable cull face so that the particles are always shown to the camera
 		glDisable(GL_CULL_FACE);
 		particles.render(vp);
 		irishParticles.render(vp);
 		glEnable(GL_CULL_FACE);
 		flag.render(vp);
 
+		//Frame rate calculation
 		frames++;
 		fTime += deltaTime;
 		if (fTime > 2.0f) {
@@ -588,7 +431,7 @@ int main(void)
 			fTime = 0;
 
 			std::stringstream stream;
-			stream << std::fixed << std::setprecision(2) << "Future EmeraldIsle | Frames per second (FPS): " << fps;
+			stream << std::fixed << std::setprecision(2) << "Future Emerald Isle | Frames per second (FPS): " << fps;
 			glfwSetWindowTitle(window, stream.str().c_str());
 		}
 
@@ -629,7 +472,7 @@ int main(void)
 	particles.cleanup();
 	drone.cleanup();
 	flag.cleanup();
-	//particleSystem.cleanup();
+	irishParticles.cleanup();
 
 	// Close OpenGL window and terminate GLFW
 	glfwTerminate();

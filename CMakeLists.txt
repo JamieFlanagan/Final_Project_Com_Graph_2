@@ -47,6 +47,8 @@ add_executable(lab2_building
 		lab2/components/Flag/Flag.h
 		lab2/components/HoverCar/HoverCar.cpp
 		lab2/components/HoverCar/HoverCar.h
+		lab2/components/ObjModel/ObjModel.cpp
+		lab2/components/ObjModel/ObjModel.h
 )
 target_link_libraries(lab2_building
 	${OPENGL_LIBRARY}
