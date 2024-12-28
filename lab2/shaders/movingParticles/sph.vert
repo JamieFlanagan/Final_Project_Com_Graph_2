@@ -1,16 +1,16 @@
 #version 330 core
-layout (location = 0) in vec3 vertexPosition;
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aColor;
+layout (location = 2) in float aSize;
 
-uniform mat4 MVP;           // Model-View-Projection matrix
-uniform vec3 cameraPosition; // Camera world position
-uniform float baseSize;      // Base size for particles in screen space
+uniform mat4 VP;
+
+out vec3 Color;
+out float Alpha;
 
 void main() {
-    gl_Position = MVP * vec4(vertexPosition, 1.0);
-
-    // Compute the distance from the particle to the camera
-    float distance = length(cameraPosition - vertexPosition);
-
-    // Adjust point size to maintain a constant size on the screen
-    gl_PointSize = baseSize / distance;
+    gl_Position = VP * vec4(aPos, 1.0);
+    gl_PointSize = aSize * (300.0 / gl_Position.w);  // Size attenuation
+    Color = aColor;
+    Alpha = min(1.0, gl_Position.w / 300.0);  // Fade out with distance
 }

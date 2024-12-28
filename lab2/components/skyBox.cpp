@@ -205,7 +205,7 @@ void SkyBox::initialize(glm::vec3 position, glm::vec3 scale, const char* texture
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(index_buffer_data), index_buffer_data, GL_STATIC_DRAW);
 
 	// Load and compile shaders
-	programID = LoadShadersFromFile("../lab2/skyBox.vert", "../lab2/skyBox.frag");
+	programID = LoadShadersFromFile("../lab2/shaders/SkyBox/skyBox.vert", "../lab2/shaders/SkyBox/skyBox.frag");
 	mvpMatrixID = glGetUniformLocation(programID, "MVP");
 	textureSamplerID = glGetUniformLocation(programID, "textureSampler");
 

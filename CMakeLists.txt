@@ -29,11 +29,11 @@ add_executable(lab2_building
 		lab2/components/drone.h
 		lab2/components/drone.cpp
 		lab2/components/animation_model.cpp
-		lab2/components/animation_model.h
+		lab2/components/AnimationRobot/animation_model.h
 		lab2/components/tinygltf_implementation.cpp
 		lab2/components/floor.cpp
-		lab2/components/floor.h
-		lab2/components/Building.cpp
+		lab2/components/Floor/floor.h
+        lab2/components/Buildings/Building.cpp
 		lab2/components/Buildings/Building.h
 		lab2/components/Billboard/Billboard.cpp
 		lab2/components/Billboard/Billboard.h
@@ -45,6 +45,8 @@ add_executable(lab2_building
 		lab2/components/CoolerParticles/movingParticles.h
 		lab2/components/Flag/Flag.cpp
 		lab2/components/Flag/Flag.h
+		lab2/components/HoverCar/HoverCar.cpp
+		lab2/components/HoverCar/HoverCar.h
 )
 target_link_libraries(lab2_building
 	${OPENGL_LIBRARY}

@@ -2,12 +2,12 @@
 // Created by JAMIE on 13/12/2024.
 //
 
-#include "components/Buildings/Building.h"
+#include "Building.h"
 #include <render/shader.h>
-#include <stb/stb_image.h>
+#include <../../../external/stb/stb_image.h>
 #include <iostream>
 #include <vector>
-#include <glm/glm.hpp>
+#include <../../../external/glm-0.9.7.1/glm/glm.hpp>
 
 
 static GLuint LoadTextureTileBox(const char *texture_file_path) {
@@ -254,14 +254,14 @@ GL_STATIC_DRAW);
 
 
 		// Create and compile our GLSL program from the shaders
-		programID = LoadShadersFromFile("../lab2/shaders/box.vert", "../lab2/shaders/box.frag");
+		programID = LoadShadersFromFile("../lab2/shaders/Box/box.vert", "../lab2/shaders/Box/box.frag");
 		if (programID == 0)
 		{
 			std::cerr << "Failed to load shaders." << std::endl;
 		}
 
 		useTextureID = glGetUniformLocation(programID, "useTexture");
-		//textureID = LoadTextureTileBox(("../lab2/futureBuildings.jpg"));
+
 		textureID = TextureID;
 		mvpMatrixID = glGetUniformLocation(programID, "MVP");
         textureSamplerID = glGetUniformLocation(programID,"textureSampler");

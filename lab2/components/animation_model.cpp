@@ -2,7 +2,7 @@
 // Created by JAMIE on 03/12/2024.
 //
 
-#include "animation_model.h"
+#include "AnimationRobot/animation_model.h"
 #include <iostream>
 #include <glm/gtc/matrix_transform.hpp>
 #include <render/shader.h>
@@ -405,7 +405,7 @@ void animationModel::initialize(glm::vec3 position) {
     animationObjects = prepareAnimation(model);
 
     // Create and compile our GLSL program from the shaders
-    programID = LoadShadersFromFile("../lab2/shaders/bot.vert", "../lab2/shaders/bot.frag");
+    programID = LoadShadersFromFile("../lab2/shaders/Bot/bot.vert", "../lab2/shaders/Bot/bot.frag");
     if (programID == 0)
     {
         std::cerr << "Failed to load shaders." << std::endl;

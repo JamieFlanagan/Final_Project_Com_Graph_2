@@ -1,47 +1,70 @@
-#ifndef MOVINGPARTICLES_H
-#define MOVINGPARTICLES_H
+#ifndef IRISH_PARTICLE_H
+#define IRISH_PARTICLE_H
 
-#include <glm/glm.hpp>
-#include <vector>
 #include <glad/gl.h>
-#include "render/shader.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <vector>
 #include <random>
 
-// Struct representing an orange particle
-struct OrangeParticle {
-    glm::vec3 position; // Current position
-    float angle;        // Angle for circular motion
-    float radius;       // Radius for circular motion
-    float lifetime;     // Time to live
-    float alpha;        // Transparency
-};
+class IrishParticleSystem {
+private:
+    struct Particle {
+        glm::vec3 position;
+        glm::vec3 velocity;
+        glm::vec3 color;
+        float life;
+        float size;
+        float angle;        // Current angle in the swirl
+        float radius;       // Distance from center of swirl
+        float heightOffset;
+    };
 
-class OrangeParticleSystem {
+    std::vector<Particle> particles;
+    GLuint VAO, VBO;
+    GLuint shaderProgram;
+    unsigned int maxParticles;
+
+    float swirlSpeed;      // Speed of rotation
+    float coneHeight;      // Height of the cone
+    float coneBaseRadius;  // Radius at the base of the cone
+    float particleSpeed;   // Speed of particles moving up
+
+    // Area bounds
+    float width;
+    float height;
+    float depth;
+    glm::vec3 systemCenter;
+
+    // Random number generation
+    std::random_device rd;
+    std::mt19937 gen;
+    std::uniform_real_distribution<float> randomFloat;
+
+    // Irish flag colors
+    const glm::vec3 GREEN = glm::vec3(0.0f, 0.451f, 0.0f);
+    const glm::vec3 WHITE = glm::vec3(1.0f, 1.0f, 1.0f);
+    const glm::vec3 ORANGE = glm::vec3(1.0f, 0.498f, 0.0f);
+
+    void resetParticle(Particle& particle, bool initial = false);
+    glm::vec3 getRandomIrishColor();
+    float getRadiusAtHeight(float height);
+
 public:
-    OrangeParticleSystem();
-    ~OrangeParticleSystem();
+    IrishParticleSystem();
+    ~IrishParticleSystem();
 
-    void initialize(int maxParticles, glm::vec3 center, float radius, float speed, glm::vec3 velocity);
+    void initialize(unsigned int count, float areaWidth, float areaHeight, float areaDepth, glm::vec3 center);
     void update(float deltaTime);
-    void render(glm::mat4 vpMatrix);
+    void render(const glm::mat4& vpMatrix);
     void cleanup();
 
-private:
-    GLuint vao, vertexBuffer, programID;
-    GLint mvpMatrixID, colorID, alphaID;
-
-    std::vector<OrangeParticle> particles;
-
-    glm::vec3 center; // Center of the circular motion
-    float speed;      // Speed of circular motion
-    int maxParticles;
-    glm::vec3 velocity; // for movement
-
-    std::default_random_engine generator;
-    std::uniform_real_distribution<float> angleDist;
-    std::uniform_real_distribution<float> lifetimeDist;
-
-    void respawnParticle(OrangeParticle& particle);
+    // Getters/Setters for runtime modifications
+    void setSystemCenter(const glm::vec3& newCenter) { systemCenter = newCenter; }
+    glm::vec3 getSystemCenter() const { return systemCenter; }
+    void setSwirlSpeed(float speed) { swirlSpeed = speed; }
+    void setConeHeight(float height) { coneHeight = height; }
+    void setConeBaseRadius(float radius) { coneBaseRadius = radius; }
 };
 
-#endif // MOVINGPARTICLES_H
+#endif // IRISH_PARTICLE_H

@@ -6,7 +6,6 @@
 #include <stb/stb_image.h>
 #include <vector>
 #include <iostream>
-
 #define _USE_MATH_DEFINES
 #include <algorithm>
 #include <iomanip>
@@ -14,24 +13,22 @@
 #include <bits/random.h>
 #include <random>
 #include <iostream>
-
-#include <stb/stb_image_write.h>
-
-#include "components/skyBox.h"
-#include "components/drone.h"
-#include "components/floor.h"
-#include "components/Buildings/Building.h"
-#include "components/animation_model.h"
-#include "components/WelcomeSign/WelcomeSign.h"
-#include "components/Flag/Flag.h"
-
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-
+#include <stb/stb_image_write.h>
 #include <tiny_gltf.h>
-
+//Components
+#include "components/skyBox.h"
+#include "components/drone.h"
+#include "components/Floor//floor.h"
+#include "components/Buildings/Building.h"
+#include "components/AnimationRobot/animation_model.h"
+#include "components/WelcomeSign/WelcomeSign.h"
+#include "components/Flag/Flag.h"
+#include "components/CoolerParticles/movingParticles.h"
 #include "components/ParticleSystem/ParticleSystem.h"
+#include "components/HoverCar/HoverCar.h"
 
 static GLFWwindow *window;
 static void key_callback(GLFWwindow *window, int key, int scancode, int action, int mode);
@@ -76,6 +73,13 @@ std::vector<glm::vec3> wayPointsBot2 ={
 	glm::vec3(33.0999, 0, -33.657),
 	glm::vec3(-94.4001, 0, -33.657),
 	glm::vec3(-94.4001, 0.0, -161.157)
+};
+
+std::vector<glm::vec3> wayPointsBot3 ={
+	glm::vec3(281.15f, 0.0f, -247.148f),  // Start point
+	glm::vec3(-256.338f, 0.0f, -247.148f),  // Second corner
+	glm::vec3(-268.901f, 0.0f, 251.071f),  // Third corner
+	glm::vec3(278.052f, 0.0f, 251.071f)
 };
 
 
@@ -294,295 +298,6 @@ void initializeShadowMap() {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-struct HoverCar{
-	glm::vec3 position; // Position of the car
-	glm::vec3 scale;    // Scale of the car
-	glm::vec3 color;    // Color of the car
-
-	GLuint vertexArrayID;
-	GLuint vertexBufferID;
-	GLuint normalBufferID;
-	GLuint indexBufferID;
-	GLuint uvBufferID;
-	GLuint textureID;
-	GLuint textureSamplerID;
-	GLuint programID;
-	GLuint mvpMatrixID;
-	GLuint colorID;
-
-	//My hoverCar data
-
-	GLfloat vertex_buffer_data[72] = {
-        // Front face (tapered)
-        -0.8f, -0.3f,  1.0f,  // Narrower front
-         0.8f, -0.3f,  1.0f,
-         0.6f,  0.2f,  0.8f,  // Sloped windshield
-        -0.6f,  0.2f,  0.8f,
-
-        // Back face (wider)
-        -1.0f, -0.3f, -1.0f,
-         1.0f, -0.3f, -1.0f,
-         0.8f,  0.1f, -1.0f,
-        -0.8f,  0.1f, -1.0f,
-
-        // Left face
-        -1.0f, -0.3f, -1.0f,
-        -0.8f, -0.3f,  1.0f,
-        -0.6f,  0.2f,  0.8f,
-        -0.8f,  0.1f, -1.0f,
-
-        // Right face
-         0.8f, -0.3f,  1.0f,
-         1.0f, -0.3f, -1.0f,
-         0.8f,  0.1f, -1.0f,
-         0.6f,  0.2f,  0.8f,
-
-        // Top face (cockpit)
-        -0.6f,  0.2f,  0.8f,
-         0.6f,  0.2f,  0.8f,
-         0.8f,  0.1f, -1.0f,
-        -0.8f,  0.1f, -1.0f,
-
-        // Bottom face (slightly curved up at edges)
-        -1.0f, -0.3f, -1.0f,
-         1.0f, -0.3f, -1.0f,
-         0.8f, -0.3f,  1.0f,
-        -0.8f, -0.3f,  1.0f
-    };
-
-    // Updated normals for the modified shape
-    GLfloat normal_buffer_data[72] = {
-        // Front face
-         0.0f,  0.2f,  1.0f,
-         0.0f,  0.2f,  1.0f,
-         0.0f,  0.2f,  1.0f,
-         0.0f,  0.2f,  1.0f,
-
-        // Back face
-         0.0f,  0.0f, -1.0f,
-         0.0f,  0.0f, -1.0f,
-         0.0f,  0.0f, -1.0f,
-         0.0f,  0.0f, -1.0f,
-
-        // Left face
-        -1.0f,  0.1f,  0.0f,
-        -1.0f,  0.1f,  0.0f,
-        -1.0f,  0.1f,  0.0f,
-        -1.0f,  0.1f,  0.0f,
-
-        // Right face
-         1.0f,  0.1f,  0.0f,
-         1.0f,  0.1f,  0.0f,
-         1.0f,  0.1f,  0.0f,
-         1.0f,  0.1f,  0.0f,
-
-        // Top face
-         0.0f,  1.0f,  0.1f,
-         0.0f,  1.0f,  0.1f,
-         0.0f,  1.0f,  0.1f,
-         0.0f,  1.0f,  0.1f,
-
-        // Bottom face
-         0.0f, -1.0f,  0.0f,
-         0.0f, -1.0f,  0.0f,
-         0.0f, -1.0f,  0.0f,
-         0.0f, -1.0f,  0.0f
-    };
-
-    // Index buffer remains the same
-    GLuint index_buffer_data[36] = {
-        0, 1, 2, 0, 2, 3,     // Front face
-        4, 5, 6, 4, 6, 7,     // Back face
-        8, 9, 10, 8, 10, 11,  // Left face
-        12, 13, 14, 12, 14, 15, // Right face
-        16, 17, 18, 16, 18, 19, // Top face
-        20, 21, 22, 20, 22, 23  // Bottom face
-    };
-
-
-	//UV
-	GLfloat uvBufferData[48] = {
-		// Front face
-		0.0f, 1.0f,
-		1.0f, 1.0f,
-		1.0f, 0.0f,
-		0.0f, 0.0f,
-
-		// Back face
-		0.0f, 1.0f,
-		1.0f, 1.0f,
-		1.0f, 0.0f,
-		0.0f, 0.0f,
-
-		// Left face
-		0.0f, 1.0f,
-		1.0f, 1.0f,
-		1.0f, 0.0f,
-		0.0f, 0.0f,
-
-		// Right face
-		0.0f, 1.0f,
-		1.0f, 1.0f,
-		1.0f, 0.0f,
-		0.0f, 0.0f,
-
-		// Top face
-		0.0f, 1.0f,
-		1.0f, 1.0f,
-		1.0f, 0.0f,
-		0.0f, 0.0f,
-
-		// Bottom face
-		0.0f, 1.0f,
-		1.0f, 1.0f,
-		1.0f, 0.0f,
-		0.0f, 0.0f
-	};
-
-	void initialize(glm::vec3 initialPosition, glm::vec3 initialScale, glm::vec3 carColor, GLuint TextureId) {
-		position = initialPosition;
-		scale = initialScale;
-		color = carColor;
-		this->textureID = TextureId;
-
-		glGenVertexArrays(1, &vertexArrayID);
-		glBindVertexArray(vertexArrayID);
-
-		glGenBuffers(1, &vertexBufferID);
-		glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_buffer_data), vertex_buffer_data, GL_STATIC_DRAW);
-		glEnableVertexAttribArray(0); // Position
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-		glGenBuffers(1, &normalBufferID);
-		glBindBuffer(GL_ARRAY_BUFFER, normalBufferID);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(normal_buffer_data), normal_buffer_data, GL_STATIC_DRAW);
-		glEnableVertexAttribArray(1); // Normals
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
-
-		glGenBuffers(1, &uvBufferID);
-		glBindBuffer(GL_ARRAY_BUFFER, uvBufferID);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(uvBufferData), uvBufferData, GL_STATIC_DRAW);
-		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, 0);
-
-		glGenBuffers(1, &indexBufferID);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferID);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(index_buffer_data), index_buffer_data, GL_STATIC_DRAW);
-
-		// Load shaders
-		programID = LoadShadersFromFile("../lab2/shaders/HoverCar/car.vert", "../lab2/shaders/HoverCar/car.frag");
-		mvpMatrixID = glGetUniformLocation(programID, "MVP");
-		colorID = glGetUniformLocation(programID, "carColor");
-		textureSamplerID = glGetUniformLocation(programID, "textureSampler");
-	}
-
-	void render(glm::mat4 vpMatrix) {
-		glUseProgram(programID);
-
-		glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), position);
-		modelMatrix = glm::scale(modelMatrix, scale);
-		glm::mat4 mvp = vpMatrix * modelMatrix;
-
-		glUniformMatrix4fv(mvpMatrixID, 1, GL_FALSE, &mvp[0][0]);
-		glUniform3fv(colorID, 1, &color[0]);
-
-		//Texture
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textureID);
-		glUniform1i(textureSamplerID, 0);
-
-		glBindVertexArray(vertexArrayID);
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-	}
-
-	void cleanup() {
-		glDeleteBuffers(1, &vertexBufferID);
-		glDeleteBuffers(1, &indexBufferID);
-		glDeleteVertexArrays(1, &vertexArrayID);
-		glDeleteBuffers(1, &normalBufferID);
-		glDeleteTextures(1, &textureID);
-		glDeleteBuffers(1, &uvBufferID);
-		glDeleteProgram(programID);
-	}
-};
-
-/*
-struct Flag {
-    glm::vec3 position;
-    glm::vec3 scale;
-    GLuint textureID;
-    GLuint vertexArrayID, vertexBufferID, uvBufferID, programID;
-
-	GLfloat vertices[12] = {
-		-0.5f,  0.5f, 0.0f, // Top-left
-		 0.5f,  0.5f, 0.0f, // Top-right
-		-0.5f, -0.5f, 0.0f, // Bottom-left
-		 0.5f, -0.5f, 0.0f  // Bottom-right
-	};
-
-	GLfloat uvCoords[12] = {
-		0.0f, 1.0f, // Top-left
-		1.0f, 1.0f, // Top-right
-		0.0f, 0.0f, // Bottom-left
-		1.0f, 0.0f  // Bottom-right
-	};
-
-    void initialize(glm::vec3 initPosition, glm::vec3 initScale, GLuint texture) {
-        position = initPosition;
-        scale = initScale;
-        textureID = texture;
-
-    	programID = LoadShadersFromFile("../lab2/shaders/Flag/flag.vert", "../lab2/shaders/Flag/flag.frag");
-        // Define vertices for a plane
-
-
-        glGenVertexArrays(1, &vertexArrayID);
-        glBindVertexArray(vertexArrayID);
-
-        glGenBuffers(1, &vertexBufferID);
-        glBindBuffer(GL_ARRAY_BUFFER, vertexBufferID);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-        glEnableVertexAttribArray(0);
-
-        glGenBuffers(1, &uvBufferID);
-        glBindBuffer(GL_ARRAY_BUFFER, uvBufferID);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(uvCoords), uvCoords, GL_STATIC_DRAW);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, 0);
-        glEnableVertexAttribArray(1);
-
-        glBindVertexArray(0);
-    }
-
-    void render(glm::mat4 vpMatrix) {
-        glUseProgram(programID);
-
-        glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), position);
-        modelMatrix = glm::scale(modelMatrix, scale);
-        glm::mat4 mvp = vpMatrix * modelMatrix;
-
-        glUniformMatrix4fv(glGetUniformLocation(programID, "MVP"), 1, GL_FALSE, &mvp[0][0]);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, textureID);
-        glUniform1i(glGetUniformLocation(programID, "textureSampler"), 0);
-
-        glBindVertexArray(vertexArrayID);
-        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-        glBindVertexArray(0);
-    }
-
-    void cleanup() {
-        glDeleteBuffers(1, &vertexBufferID);
-        glDeleteBuffers(1, &uvBufferID);
-        glDeleteVertexArrays(1, &vertexArrayID);
-    }
-};
-*/
-
-
-
 //Make the cubes move
 void updateHoverCars(std::vector<HoverCar>& hoverCars, float deltaTime, float tallestBuildingHeight) {
 
@@ -655,7 +370,7 @@ int main(void)
 
 	//The ground
 	Floor floor;
-	GLuint floorTexture = LoadTextureTileBox("../lab2/ground.jpg");
+	GLuint floorTexture = LoadTextureTileBox("../lab2/myTextures/ground.jpg");
 	floor.initialize(floorTexture);
 	float floorSize = 800.0f;
 
@@ -669,12 +384,12 @@ int main(void)
 
 	std::random_device rd;
 	std::mt19937 gen(rd());
-	//GLuint buildText = LoadTextureTileBox("../lab2/futureBuildings.jpg");
+
 
 	//textures.push_back(buildText);
-	textures.push_back(LoadTextureTileBox("../lab2/nightCity.jpg"));
-	textures.push_back(LoadTextureTileBox("../lab2/cityBuilding.jpg"));
-	textures.push_back(LoadTextureTileBox("../lab2/nightCity3.jpg"));
+	textures.push_back(LoadTextureTileBox("../lab2/myTextures/nightCity.jpg"));
+	textures.push_back(LoadTextureTileBox("../lab2/myTextures/cityBuilding.jpg"));
+	textures.push_back(LoadTextureTileBox("../lab2/myTextures/nightCity3.jpg"));
 	std::uniform_int_distribution<> texture_dist(0, textures.size() - 1);
 	float x=0;
 	float z=0;
@@ -707,10 +422,10 @@ int main(void)
 
 	//Drone creation stemming from sphere Idea
 	Drone drone;
-	GLuint guinessTexture = LoadTextureTileBox("../lab2/guinessAddFix.jpg");
+	GLuint guinessTexture = LoadTextureTileBox("../lab2/myTextures/guinessAddFix.jpg");
 	drone.initialize(glm::vec3(100.0f, -800.0f, 60.0f), guinessTexture);
 
-	GLuint carTexture = LoadTextureTileBox("../lab2/hoverCar2.jpg");
+	GLuint carTexture = LoadTextureTileBox("../lab2/myTextures/hoverCar2.jpg");
 	//Hover car
 	float tallestBuildingHeight=350.0f;
 	std::vector<HoverCar> hoverCars;
@@ -727,7 +442,7 @@ int main(void)
 	glm::vec3 cityCenterSky = glm::vec3((rows - 1) * spacing / 2.0f, 0, (cols - 1) * spacing / 2.0f);
 	SkyBox skybox;
 	glm::vec3 skyboxScale(1000.0f, 1000.0f, 1000.0f);
-	skybox.initialize(cityCenterSky, glm::vec3(rows * spacing, rows * spacing, rows * spacing), "../lab2/SpaceMap.png");
+	skybox.initialize(cityCenterSky, glm::vec3(rows * spacing, rows * spacing, rows * spacing), "../lab2/myTextures/SpaceMap.png");
 
 	animationModel bot;
 	bot.initialize(glm::vec3(52.176f, 0.0f, -323.899f));
@@ -743,6 +458,13 @@ int main(void)
 	bot2.movementSpeed = 10.0f;
 	bot2.wayPoints=wayPointsBot2;
 
+	animationModel bot3;
+	bot3.initialize(glm::vec3(261.423, 10, -251.474));
+	bot3.targetPosition=wayPointsBot3[0];
+	bot3.currentWaypointIndex=0;
+	bot3.movementSpeed = 10.0f;
+	bot3.wayPoints=wayPointsBot3;
+
 	//Welcome Sign
 	WelcomeSign sign;
 	glm::vec3 signPosition = glm::vec3(56.4475f, 0.0f, -295.218f);
@@ -752,11 +474,17 @@ int main(void)
 	ParticleSystem particles;
 	particles.initialize(3000, rows, cols, spacing);
 
+	IrishParticleSystem irishParticles;
+	irishParticles.initialize(2000, rows, cols, spacing, glm::vec3(56.4475f, 0.0f, -275.218f));
+	irishParticles.setSwirlSpeed(2.0f);
+	irishParticles.setConeHeight(50.0f);
+	irishParticles.setConeBaseRadius(15.0f);
+
 	ObjModel myModel;
 	myModel.initialize("../lab2/models/UFO/correctUFO.obj",glm::vec3(56.4475f, 10.0f, -275.218f), glm::vec3(10.0f));
 
 	//Flag
-	GLuint irishFlagTexture = LoadTextureTileBox("../lab2/irishFlag.jpg");
+	GLuint irishFlagTexture = LoadTextureTileBox("../lab2/myTextures/irishFlag.jpg");
 	Flag flag;
 	flag.initialize(glm::vec3(-0.3, 42.4078, -212.365), glm::vec3(30.0f, 20.0f, 1.0f), irishFlagTexture);
 
@@ -789,10 +517,15 @@ int main(void)
 		//move bots
 		bot.moveToTarget(deltaTime);
 		bot2.moveToTarget(deltaTime);
+		bot3.moveToTarget(deltaTime);
 		//character update
 		bot.update(time);
 		bot2.update(time);
+		bot3.update(time);
+		//Particles
 		particles.update(deltaTime);
+		irishParticles.update(deltaTime);
+		//Hover cars
 		updateHoverCars(hoverCars, deltaTime, tallestBuildingHeight);
 
 	// Shadow pass
@@ -828,6 +561,7 @@ int main(void)
 		}
 		bot.render(vp);
 		bot2.render(vp);
+		bot3.render(vp);
 		glm::vec3 modelColor = glm::vec3(0.8f, 0.1f, 0.3f);
 		glDisable(GL_CULL_FACE);
 		myModel.render(vp, deltaTime);
@@ -842,6 +576,7 @@ int main(void)
 		//disable cull face so that the particles are always shown to the camera
 		glDisable(GL_CULL_FACE);
 		particles.render(vp);
+		irishParticles.render(vp);
 		glEnable(GL_CULL_FACE);
 		flag.render(vp);
 
@@ -890,6 +625,7 @@ int main(void)
 	skybox.cleanup();
 	bot.cleanup();
 	bot2.cleanup();
+	bot3.cleanup();
 	particles.cleanup();
 	drone.cleanup();
 	flag.cleanup();
