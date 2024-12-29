@@ -9,7 +9,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd C:\Users\JAMIE\Documents\4thYear\Com_Graph_Final\Final_Project_Com_Graph_2\lab2\models\UFO\Material.001_baseColor.jpeg
+map_Kd ..\lab2\models\UFO\Material.001_baseColor.jpeg
 
 
 newmtl Material.003
@@ -70,7 +70,7 @@ Ke 0.000000 0.000000 0.000000
 Ni 1.500000
 d 1.000000
 illum 2
-map_Kd C:\Users\JAMIE\Documents\4thYear\Com_Graph_Final\Final_Project_Com_Graph_2\lab2\models\UFO\Material.012_baseColor.jpeg
+map_Kd ..\lab2\models\UFO\Material.012_baseColor.jpeg
 
 newmtl Material.013
 Ns 159.999985

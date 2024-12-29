@@ -4,6 +4,7 @@ in vec2 TexCoords;
 
 out vec4 FragColor;
 
+//Was not used kept it in
 uniform sampler2D branchTexture;
 uniform sampler2D leafTexture;
 uniform sampler2D trunkTexture;
