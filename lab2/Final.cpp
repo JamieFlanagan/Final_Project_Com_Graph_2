@@ -44,6 +44,7 @@ static float viewPolar = 0.f;
 static float viewDistance = 600.0f;
 static float movementSpeed = 2.5f;
 static float rotationSpeed = 3.0f;
+static float verticalMovementSpeed = 3.0f;
 
 //Shadow Map settings
 const unsigned int shadow_width = 4096, shadow_height = 4096;
@@ -384,7 +385,7 @@ int main(void)
 		glClear(GL_DEPTH_BUFFER_BIT);
 
 		//Set up lightspace matrix
-		glm::mat4 lightProjection = glm::ortho(-1000.0f, 1000.0f, -1000.0f, 1000.0f, 1.0f, 1000.0f);
+		glm::mat4 lightProjection = glm::ortho(-800.0f, 800.0f, -800.0f, 800.0f, 1.0f, 1000.0f);
 		glm::mat4 lightView = glm::lookAt(lightPosition, lightLookAt, glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::mat4 lightSpaceMatrix = lightProjection * lightView;
 		//Render depth Map for shadows
@@ -518,6 +519,15 @@ static void key_callback(GLFWwindow *window, int key, int scancode, int action, 
         eye_center += right * movementSpeed;
         lookat += right * movementSpeed;
     }
+	if (key == GLFW_KEY_P && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+    	eye_center.y += verticalMovementSpeed; // Move up
+    	lookat.y += verticalMovementSpeed;     // Keep looking at the same relative point
+    }
+
+	if (key == GLFW_KEY_L && (action == GLFW_PRESS || action == GLFW_REPEAT)) {
+		eye_center.y -= verticalMovementSpeed; // Move down
+		lookat.y -= verticalMovementSpeed;     // Keep looking at the same relative point
+	}
 
     // Rotation controls
     if (key == GLFW_KEY_DOWN && (action == GLFW_PRESS || action == GLFW_REPEAT)) {

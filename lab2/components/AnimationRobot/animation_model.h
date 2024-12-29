@@ -43,7 +43,7 @@ public:
     GLuint textureID;
     GLuint programID;
     glm::vec3 lightPosition;  // Position of the light source
-    glm::vec3 lightIntensity;
+    glm::vec3 lightIntensity, lightSpaceMatrixID;
     glm::vec3 spawnPosition;
     glm::mat4 rotationMatrix;
 
@@ -96,6 +96,7 @@ public:
     void drawModelNodes(const std::vector<PrimitiveObject>& primitiveObjects, tinygltf::Model& model, tinygltf::Node& node);
     void drawModel(const std::vector<PrimitiveObject>& primitiveObjects, tinygltf::Model& model);
     void render(glm::mat4 cameraMatrix);
+    void renderDepth(GLuint depthShaderProg, const glm::mat4 &lightSpaceMatrix);
     void loadMaterialTextures();
     void moveToTarget(float deltaTime);
 
