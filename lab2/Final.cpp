@@ -47,7 +47,7 @@ static float rotationSpeed = 3.0f;
 static float verticalMovementSpeed = 3.0f;
 
 //Shadow Map settings
-const unsigned int shadow_width = 4096, shadow_height = 4096;
+const unsigned int shadow_width = 1024, shadow_height = 1024;
 GLuint depthMapFBO;
 GLuint depthMap;
 bool saveDepthMap =false;
@@ -442,8 +442,6 @@ int main(void)
 			stream << std::fixed << std::setprecision(2) << "Future Emerald Isle | Frames per second (FPS): " << fps;
 			glfwSetWindowTitle(window, stream.str().c_str());
 		}
-
-		//Debug the camera posititon so I can exactly choose where I want certain elements
 
 		static float printTimer = 0.0f;
 		printTimer += deltaTime;
